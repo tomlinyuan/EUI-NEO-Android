@@ -1,5 +1,15 @@
 # EUI-NEO
 
+> 🤖 **Android Port** — 这是一个为 EUI-NEO 添加 Android 后端的 fork。
+> 完整移动端使用说明、移植细节、组件示例 → **[android/README.md](android/README.md)**
+>
+> Android 全部新代码在 `android/` 目录,上游 `core/` 与 `components/` 仅有 6 处小改(详见 Android README)。
+> 下方为上游桌面端(Windows / macOS / Linux)原说明,保留致谢上游作者。
+>
+> _This fork adds Android support. See [android/README.md](android/README.md) for the mobile port docs._
+
+---
+
 <p align="center">
   <img src="assets/icon.svg" width="104" alt="EUI icon">
 </p>

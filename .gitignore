@@ -1,4 +1,71 @@
+# ==== Desktop (CMake) ====
 /build
+/build-*/
+/cmake-build-*/
+/out/
 /参考
 /build-check
+CMakeCache.txt
+CMakeFiles/
+CMakeUserPresets.json
+cmake_install.cmake
+compile_commands.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dll
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+
+# ==== Android / Gradle ====
+android/build/
+android/.gradle/
+android/app/build/
+android/app/.cxx/
+android/captures/
+android/local.properties
+android/**/build/
+android/**/.cxx/
+android/**/.gradle/
+
+# Gradle wrapper - keep gradle-wrapper.jar; ignore other generated files
+android/.idea/
+android/*.iml
+android/**/*.iml
+
+# Android build outputs
+*.apk
+*.aab
+*.ap_
+*.dex
+*.class
+
+# Signing / keys (never commit)
+*.jks
+*.keystore
+keystore.properties
+
+# ==== IDEs ====
+.idea/
+.vscode/
+*.iml
+*.code-workspace
+*.swp
+*.swo
+*~
+
+# ==== OS ====
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# ==== Misc ====
+*.log
+*.tmp
