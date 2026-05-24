@@ -72,7 +72,13 @@ public:
         const float popupGap = 8.0f;
         const float popupPadding = 6.0f;
         const float popupHeight = itemHeight_ * static_cast<float>(std::max(1, count)) + popupPadding * 2.0f;
-        const float rootHeight = height_ + popupGap + popupHeight;
+        // Root stack only reserves the field's height. The popup floats over
+        // siblings via zIndex instead of expanding the layout — otherwise the
+        // dropdown's parent (cards, columns) would jump around as the popup
+        // opens/closes, and on Android a rootHeight that exceeds the parent
+        // card mis-positions the field itself.
+        const float rootHeight = height_;
+        const int popupZIndex = zIndex_ + 1000;
         const float visible = open_ ? 1.0f : 0.0f;
         const float popupOffsetY = open_ ? 0.0f : -6.0f;
         const float popupScale = open_ ? 1.0f : 0.96f;
@@ -122,6 +128,7 @@ public:
                 ui_.stack(id_ + ".popup")
                     .y(height_ + popupGap)
                     .size(width_, popupHeight)
+                    .zIndex(popupZIndex)
                     .opacity(visible)
                     .translateY(popupOffsetY)
                     .scale(popupScale)

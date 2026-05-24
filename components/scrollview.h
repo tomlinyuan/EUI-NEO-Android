@@ -66,6 +66,16 @@ public:
                 const float next = std::clamp(currentOffset - static_cast<float>(event.y) * scrollStep, 0.0f, maxOffset);
                 onChange(next);
             })
+            .onDrag([currentOffset, maxOffset, onChange](const core::dsl::DragEvent& event) {
+                // Natural-direction touch scrolling: dragging the finger up
+                // (negative deltaY) reveals content further down, so offset
+                // grows. Pixel-level mapping — no scrollStep multiplier.
+                if (!onChange || maxOffset <= 0.0f) {
+                    return;
+                }
+                const float next = std::clamp(currentOffset - static_cast<float>(event.deltaY), 0.0f, maxOffset);
+                onChange(next);
+            })
             .content([&] {
                 ui_.column(id_ + ".content")
                     .y(-currentOffset)

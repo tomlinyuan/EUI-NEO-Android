@@ -166,7 +166,10 @@ GLFWwindow* glfwCreateWindow(int width, int height, const char*,
         std::lock_guard<std::mutex> lock(bridge.surfaceMutex);
         nw = bridge.nativeWindow;
     }
-    if (!nw) return nullptr;
+    if (!nw) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI", "createWindow: nativeWindow is null");
+        return nullptr;
+    }
 
     GLFWwindow* w = new GLFWwindow();
     w->nativeWindow = nw;
@@ -177,29 +180,52 @@ GLFWwindow* glfwCreateWindow(int width, int height, const char*,
     ANativeWindow_setBuffersGeometry(nw, 0, 0, AHARDWAREBUFFER_FORMAT_R8G8B8A8_UNORM);
 
     EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    if (dpy == EGL_NO_DISPLAY) { delete w; return nullptr; }
+    if (dpy == EGL_NO_DISPLAY) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI", "eglGetDisplay failed: 0x%x", eglGetError());
+        delete w; return nullptr;
+    }
 
     EGLint maj, min;
-    if (!eglInitialize(dpy, &maj, &min)) { delete w; return nullptr; }
+    if (!eglInitialize(dpy, &maj, &min)) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI", "eglInitialize failed: 0x%x", eglGetError());
+        delete w; return nullptr;
+    }
+    __android_log_print(ANDROID_LOG_INFO, "EUI", "EGL initialized: %d.%d", maj, min);
 
+    // Widened from ES3_BIT to ES2|ES3 so software / older emulator EGL stacks
+    // that only tag their window configs with ES2_BIT still match. We still
+    // ask for an ES3 context below (ctxAttr) — most drivers will hand one out
+    // even when the config itself is marked ES2.
     const EGLint cfgAttr[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT | EGL_OPENGL_ES3_BIT,
         EGL_RED_SIZE, 8, EGL_GREEN_SIZE, 8, EGL_BLUE_SIZE, 8, EGL_ALPHA_SIZE, 8,
-        EGL_DEPTH_SIZE, 0, EGL_STENCIL_SIZE, 0,
         EGL_NONE
     };
     EGLint nCfg; EGLConfig cfg;
     if (!eglChooseConfig(dpy, cfgAttr, &cfg, 1, &nCfg) || nCfg == 0) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI",
+            "eglChooseConfig: matched=%d err=0x%x", nCfg, eglGetError());
         eglTerminate(dpy); delete w; return nullptr;
     }
+    EGLint cfgId = 0, cfgRenderable = 0;
+    eglGetConfigAttrib(dpy, cfg, EGL_CONFIG_ID, &cfgId);
+    eglGetConfigAttrib(dpy, cfg, EGL_RENDERABLE_TYPE, &cfgRenderable);
+    __android_log_print(ANDROID_LOG_INFO, "EUI",
+        "chosen EGLConfig id=%d renderable=0x%x", cfgId, cfgRenderable);
 
     const EGLint ctxAttr[] = { EGL_CONTEXT_CLIENT_VERSION, 3, EGL_NONE };
     EGLContext ctx = eglCreateContext(dpy, cfg, EGL_NO_CONTEXT, ctxAttr);
-    if (ctx == EGL_NO_CONTEXT) { eglTerminate(dpy); delete w; return nullptr; }
+    if (ctx == EGL_NO_CONTEXT) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI",
+            "eglCreateContext(ES3) failed: 0x%x", eglGetError());
+        eglTerminate(dpy); delete w; return nullptr;
+    }
 
     EGLSurface sfc = eglCreateWindowSurface(dpy, cfg, nw, nullptr);
     if (sfc == EGL_NO_SURFACE) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI",
+            "eglCreateWindowSurface failed: 0x%x", eglGetError());
         eglDestroyContext(dpy, ctx); eglTerminate(dpy); delete w; return nullptr;
     }
 
@@ -207,9 +233,13 @@ GLFWwindow* glfwCreateWindow(int width, int height, const char*,
     w->egl.context = ctx;  w->egl.surface = sfc;
 
     if (!eglMakeCurrent(dpy, sfc, sfc, ctx)) {
+        __android_log_print(ANDROID_LOG_ERROR, "EUI",
+            "eglMakeCurrent failed: 0x%x", eglGetError());
         eglDestroySurface(dpy, sfc); eglDestroyContext(dpy, ctx);
         eglTerminate(dpy); delete w; return nullptr;
     }
+    __android_log_print(ANDROID_LOG_INFO, "EUI", "EGL context ready, GL_VERSION=%s",
+                        (const char*)glGetString(GL_VERSION));
 
     g_currentWindow = w;
     return w;

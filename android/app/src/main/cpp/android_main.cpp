@@ -82,6 +82,10 @@ static bool runWindowSession() {
     GLFWwindow* window = glfwCreateWindow(1080, 1920, "EUI-NEO", nullptr, nullptr);
     if (!window) {
         __android_log_print(ANDROID_LOG_ERROR, "EUI", "glfwCreateWindow failed");
+        // Throttle so the retry loop doesn't flood logcat at thousands of
+        // lines per second when EGL setup keeps failing (e.g. on emulators
+        // missing an ES3 window config).
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
         return !eui_android_exit_requested();
     }
 

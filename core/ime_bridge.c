@@ -139,6 +139,7 @@ void eui_ime_set_cursor_rect(GLFWwindow* window, double x, double y, double widt
 
 #else
 
+#ifndef __ANDROID__
 void eui_ime_set_cursor_rect(GLFWwindow* window, double x, double y, double width, double height) {
     (void)window;
     (void)x;
@@ -146,5 +147,6 @@ void eui_ime_set_cursor_rect(GLFWwindow* window, double x, double y, double widt
     (void)width;
     (void)height;
 }
+#endif
 
 #endif

@@ -11,6 +11,13 @@
 #include <unordered_map>
 #include <vector>
 
+// Desktop fallback: Android force-includes eui_android_config.h which defines
+// EUI_SHADER_PRELUDE to a GLSL ES 3.00 header. Everywhere else, default to
+// the desktop GLSL 3.30 core profile that upstream was written against.
+#ifndef EUI_SHADER_PRELUDE
+#define EUI_SHADER_PRELUDE "#version 330 core\n"
+#endif
+
 namespace core {
 
 struct Vec2 {
@@ -78,7 +85,7 @@ public:
 
     bool initialize() {
         const char* vertexSource =
-            "#version 330 core\n"
+            EUI_SHADER_PRELUDE
             "layout(location = 0) in vec2 aScreenPos;\n"
             "layout(location = 1) in vec2 aLocalPos;\n"
             "uniform vec2 uWindowSize;\n"
@@ -91,7 +98,7 @@ public:
             "}\n";
 
         const char* fragmentSource =
-            "#version 330 core\n"
+            EUI_SHADER_PRELUDE
             "in vec2 vLocalPos;\n"
             "out vec4 FragColor;\n"
             "uniform vec4 uFillColor;\n"
@@ -676,7 +683,7 @@ public:
 
     bool initialize() {
         const char* vertexSource =
-            "#version 330 core\n"
+            EUI_SHADER_PRELUDE
             "layout(location = 0) in vec2 aScreenPos;\n"
             "uniform vec2 uWindowSize;\n"
             "void main() {\n"
@@ -686,7 +693,7 @@ public:
             "}\n";
 
         const char* fragmentSource =
-            "#version 330 core\n"
+            EUI_SHADER_PRELUDE
             "out vec4 FragColor;\n"
             "uniform vec4 uFillColor;\n"
             "uniform float uOpacity;\n"

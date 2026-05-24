@@ -318,14 +318,24 @@ inline PointerEvent readPointerEvent(GLFWwindow* window, float dpiScale = 1.0f) 
     PointerEvent event;
     event.x = x;
     event.y = y;
-    event.deltaX = x - state.lastX;
-    event.deltaY = y - state.lastY;
     event.down = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS;
     event.rightDown = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS;
     event.pressedThisFrame = event.down && !state.lastDown;
     event.releasedThisFrame = !event.down && state.lastDown;
     event.rightPressedThisFrame = event.rightDown && !state.lastRightDown;
     event.rightReleasedThisFrame = !event.rightDown && state.lastRightDown;
+
+    if (event.pressedThisFrame) {
+        // First frame after press: state.lastX/Y still holds the position
+        // from the previous release, so naively computing (x - lastX) would
+        // produce a phantom delta — large enough on touch devices to slam
+        // scrollviews to top/bottom on a simple tap.
+        event.deltaX = 0.0;
+        event.deltaY = 0.0;
+    } else {
+        event.deltaX = x - state.lastX;
+        event.deltaY = y - state.lastY;
+    }
 
     state.lastX = x;
     state.lastY = y;

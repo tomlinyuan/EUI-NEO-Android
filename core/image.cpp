@@ -7,6 +7,13 @@
 #endif
 #include <GLFW/glfw3.h>
 
+// Desktop fallback: Android force-includes eui_android_config.h which defines
+// EUI_SHADER_PRELUDE to a GLSL ES 3.00 header. Everywhere else, default to
+// the desktop GLSL 3.30 core profile that upstream was written against.
+#ifndef EUI_SHADER_PRELUDE
+#define EUI_SHADER_PRELUDE "#version 330 core\n"
+#endif
+
 #include <algorithm>
 #include <atomic>
 #include <cctype>
@@ -692,7 +699,7 @@ bool ImagePrimitive::retainSharedResources() {
     }
 
     const char* vertexSource =
-        "#version 330 core\n"
+        EUI_SHADER_PRELUDE
         "layout(location = 0) in vec2 aScreenPos;\n"
         "layout(location = 1) in vec2 aLocalPos;\n"
         "layout(location = 2) in vec2 aUV;\n"
@@ -708,7 +715,7 @@ bool ImagePrimitive::retainSharedResources() {
         "}\n";
 
     const char* fragmentSource =
-        "#version 330 core\n"
+        EUI_SHADER_PRELUDE
         "in vec2 vLocalPos;\n"
         "in vec2 vUV;\n"
         "out vec4 FragColor;\n"

@@ -16,6 +16,13 @@
 #endif
 #include <GLFW/glfw3.h>
 
+// Desktop fallback: Android force-includes eui_android_config.h which defines
+// EUI_SHADER_PRELUDE to a GLSL ES 3.00 header. Everywhere else, default to
+// the desktop GLSL 3.30 core profile that upstream was written against.
+#ifndef EUI_SHADER_PRELUDE
+#define EUI_SHADER_PRELUDE "#version 330 core\n"
+#endif
+
 #define STB_TRUETYPE_IMPLEMENTATION
 #include "3rd/stb_truetype.h"
 
@@ -104,7 +111,7 @@ GLuint compileGlShader(GLenum type, const char* source) {
 
 bool createSharedTextRenderResources(SharedTextRenderResources& resources) {
     const char* vertexSource =
-        "#version 330 core\n"
+        EUI_SHADER_PRELUDE
         "layout(location = 0) in vec2 aPos;\n"
         "layout(location = 1) in vec2 aUv;\n"
         "layout(location = 2) in float aUseSdf;\n"
@@ -120,7 +127,7 @@ bool createSharedTextRenderResources(SharedTextRenderResources& resources) {
         "}\n";
 
     const char* fragmentSource =
-        "#version 330 core\n"
+        EUI_SHADER_PRELUDE
         "in vec2 vUv;\n"
         "in float vUseSdf;\n"
         "out vec4 FragColor;\n"
@@ -231,7 +238,7 @@ bool retainSharedTextAtlas() {
     glGenTextures(1, &atlas.texture);
     glBindTexture(GL_TEXTURE_2D, atlas.texture);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, atlas.width, atlas.height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas.width, atlas.height, 0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
